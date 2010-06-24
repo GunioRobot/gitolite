@@ -424,7 +424,7 @@ sub expand_wild
         # actual_repo has to match the pattern being expanded
         next unless $actual_repo =~ /$repo/;
 
-        my($perm, $creator, $wild) = &repo_rights($actual_repo);
+        my($perm, $creator, $wild, $exists) = &repo_rights($actual_repo);
         next unless $perm =~ /\S/;
         print "$perm\t$creator\t$actual_repo\n";
     }
@@ -470,18 +470,22 @@ sub expand_wild
             $wild = &parse_acl($GL_CONF_COMPILED, $repo, $ENV{GL_USER}, "NOBODY", "NOBODY");
         }
 
-        if ($exists and not $wild) {
-            $creator = '<gitolite>';
-        } elsif ($exists) {
-            # is a wildrepo, and it has already been created
-            $creator = "($creator)";
+        if ($exists) {
+	    if (not $wild) {
+		$creator = '<gitolite>';
+	    } else {
+		# is a wildrepo, and it has already been created
+		$creator = "($creator)";
+	    }
         } else {
-            # repo didn't exist; C perms need to be filled in
+            $creator = "<notfound>";
+	}
+	if ($wild) {
+            # is a wildcard repo; C perms need to be filled in
             $perm = ( $repos{$repo}{C}{'@all'} ? ' @C' : ( $repos{$repo}{C}{$ENV{GL_USER}} ? ' =C' : '   ' )) if $GL_WILDREPOS;
             # if you didn't have perms to create it, delete the "convenience"
             # copy of the ACL that parse_acl makes
             delete $repos{$repo} unless $perm =~ /C/;
-            $creator = "<notfound>";
         }
         $perm .= ( $repos{$repo}{R}{'@all'} ? ' @R' : ( $repos{'@all'}{R}{$ENV{GL_USER}} ? ' #R' : ( $repos{$repo}{R}{$ENV{GL_USER}} ? '  R' : '   ' )));
         $perm .= ( $repos{$repo}{W}{'@all'} ? ' @W' : ( $repos{'@all'}{W}{$ENV{GL_USER}} ? ' #W' : ( $repos{$repo}{W}{$ENV{GL_USER}} ? '  W' : '   ' )));
@@ -489,13 +493,13 @@ sub expand_wild
         # set up for caching %repos
         $last_repo = $repo;
 
-        return($perm, $creator, $wild);
+        return($perm, $creator, $wild, $exists);
     }
 }
 
 # helper/convenience routine to get rights and ownership from a shell command
 sub cli_repo_rights {
-    my ($perm, $creator, $wild) = &repo_rights($_[0]);
+    my ($perm, $creator, $wild, $exists) = &repo_rights($_[0]);
     $perm =~ s/ /_/g;
     $creator =~ s/^\(|\)$//g;
     print "$perm $creator\n";
@@ -519,7 +523,7 @@ sub special_cmd
     } elsif ($cmd =~ /^info\s+(.+)$/) {
         my @otherusers = split ' ', $1;
 
-        my($perm, $creator, $wild) = &repo_rights('gitolite-admin');
+        my($perm, $creator, $wild, $exists) = &repo_rights('gitolite-admin');
         die "you can't ask for others' permissions\n" unless $perm =~ /W/;
 
         &parse_acl($GL_CONF_COMPILED);
