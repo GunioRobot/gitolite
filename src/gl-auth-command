@@ -194,8 +194,8 @@ $ENV{GL_REPO}=$repo;
 #       first level permissions check
 # ----------------------------------------------------------------------------
 
-my ($perm, $creator, $wild) = &repo_rights($repo);
-if ($perm =~ /C/) {
+my ($perm, $creator, $wild, $exists) = &repo_rights($repo);
+if ($perm =~ /C/ and not $exists) {
     # it was missing, and you have create perms
     wrap_chdir("$repo_base_abs");
     new_repo($repo, "$GL_ADMINDIR/hooks/common", $user);
