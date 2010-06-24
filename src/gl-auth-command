@@ -200,6 +200,8 @@ if ($perm =~ /C/) {
     wrap_chdir("$repo_base_abs");
     new_repo($repo, "$GL_ADMINDIR/hooks/common", $user);
     wrap_chdir($ENV{HOME});
+    # apply the configuration, in case something was not set (like git config for wild repos)
+    system("$bindir/gl-compile-conf");
 }
 
 # we know the user and repo; we just need to know what perm he's trying
