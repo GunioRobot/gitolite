@@ -196,7 +196,7 @@ generate_email_header()
 	# Generate header
 	cat <<-EOF
 	To: $recipients
-	Subject: ${emailprefix}$projectdesc $refname_type, $short_refname, ${change_type}d. $describe
+	Subject: ${emailprefix}$projectdesc $refname_type, $short_refname, ${change_type}d.
 	Content-Type: text/plain; charset=utf-8
 	X-Git-Refname: $refname
 	X-Git-Reftype: $refname_type
@@ -217,7 +217,6 @@ generate_email_footer()
 	cat <<-EOF
 
 
-	hooks/post-receive
 	--${SPACE}
 	$projectdesc
 	EOF
@@ -368,7 +367,7 @@ generate_update_branch_email()
 			echo "            \\"
 			echo "             O -- O -- O ($oldrev)"
 			echo ""
-			echo "The removed revisions are not necessarilly gone - if another reference"
+			echo "The removed revisions are not necessarily gone - if another reference"
 			echo "still refers to them they will stay in the repository."
 			rewind_only=1
 		else
@@ -387,12 +386,19 @@ generate_update_branch_email()
 		fi
 	fi
 
+	# The diffstat is shown from the old revision to the new revision.
+	# This is to show the truth of what happened in this change.
+	# There's no point showing the stat from the base to the new
+	# revision because the base is effectively a random revision at this
+	# point - the user will be interested in what this revision changed
+	# - including the undoing of previous revisions in the case of
+	# non-fast-forward updates.
+	echo ""
+	echo "Summary of changes:"
+	git diff-tree --stat --summary --find-copies-harder $oldrev..$newrev
+
 	echo ""
 	if [ -z "$rewind_only" ]; then
-		echo "Those revisions listed above that are new to this repository have"
-		echo "not appeared on any other notification email; so we list those"
-		echo "revisions in full, below."
-
 		echo ""
 		echo $LOGBEGIN
 		show_new_revisions
@@ -405,17 +411,6 @@ generate_update_branch_email()
 	else
 		echo "No new revisions were added by this update."
 	fi
-
-	# The diffstat is shown from the old revision to the new revision.
-	# This is to show the truth of what happened in this change.
-	# There's no point showing the stat from the base to the new
-	# revision because the base is effectively a random revision at this
-	# point - the user will be interested in what this revision changed
-	# - including the undoing of previous revisions in the case of
-	# non-fast-forward updates.
-	echo ""
-	echo "Summary of changes:"
-	git diff-tree --stat --summary --find-copies-harder $oldrev..$newrev
 }
 
 #
@@ -660,11 +655,10 @@ if [ -z "$GIT_DIR" ]; then
 	exit 1
 fi
 
-projectdesc=$(sed -ne '1p' "$GIT_DIR/description")
+projectdesc=$(sed -ne '1p' "$GIT_DIR/description" 2>/dev/null)
 # Check if the description is unchanged from it's default, and shorten it to
 # a more manageable length if it is
-if expr "$projectdesc" : "Unnamed repository.*$" >/dev/null
-then
+if [ -z "$projectdesc" ]; then
 	projectdesc="UNNAMED PROJECT"
 fi
 
