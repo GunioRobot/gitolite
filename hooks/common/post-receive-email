@@ -25,20 +25,20 @@
 #
 # Config
 # ------
-# hooks.mailinglist
+# post-receive-email.mailinglist
 #   This is the list that all pushes will go to; leave it blank to not send
 #   emails for every ref update.
-# hooks.announcelist
+# post-receive-email.announcelist
 #   This is the list that all pushes of annotated tags will go to.  Leave it
 #   blank to default to the mailinglist field.  The announce emails lists
 #   the short log summary of the changes since the last annotated tag.
-# hooks.envelopesender
+# post-receive-email.envelopesender
 #   If set then the -f option is passed to sendmail to allow the envelope
 #   sender address to be set
-# hooks.emailprefix
+# post-receive-email.emailprefix
 #   All emails have their subjects prefixed with this prefix, or "[SCM]"
 #   if emailprefix is unset, to aid filtering
-# hooks.showrev
+# post-receive-email.showrev
 #   The shell command used to format each revision in the email, with
 #   "%s" replaced with the commit id.  Defaults to "git rev-list -1
 #   --pretty %s", displaying the commit id, author, date and log
@@ -154,10 +154,10 @@ generate_email()
 	if [ -z "$recipients" ]; then
 		case "$refname_type" in
 			"annotated tag")
-				config_name="hooks.announcelist"
+				config_name="post-receive-email.announcelist"
 				;;
 			*)
-				config_name="hooks.mailinglist"
+				config_name="post-receive-email.mailinglist"
 				;;
 		esac
 		echo >&2 "*** $config_name is not set so no email will be sent"
@@ -668,11 +668,11 @@ then
 	projectdesc="UNNAMED PROJECT"
 fi
 
-recipients=$(git config hooks.mailinglist)
-announcerecipients=$(git config hooks.announcelist)
-envelopesender=$(git config hooks.envelopesender)
-emailprefix=$(git config hooks.emailprefix || echo '[SCM] ')
-custom_showrev=$(git config hooks.showrev)
+recipients=$(git config post-receive-email.mailinglist)
+announcerecipients=$(git config post-receive-email.announcelist)
+envelopesender=$(git config post-receive-email.envelopesender)
+emailprefix=$(git config post-receive-email.emailprefix || echo '[SCM] ')
+custom_showrev=$(git config post-receive-email.showrev)
 
 # --- Main loop
 # Allow dual mode: run from the command line just like the update hook, or
