@@ -204,8 +204,10 @@ sub wild_repo_rights
 sub get_set_perms
 {
     my($repo_base_abs, $repo, $verb, $user) = @_;
-    my ($creator, $dummy, $dummy2) = &wild_repo_rights($repo_base_abs, $repo, "");
-    die "$repo doesnt exist or is not yours\n" unless $user eq $creator;
+    my ($perm, $creator, $wild, $exists) = &repo_rights($repo);
+    die "$repo does not exist" unless $exists;
+    die "$repo is not a wildcard repo" unless $wild;
+    die "you do not have C permission to $repo" unless $perm =~ /C/;
     wrap_chdir("$repo_base_abs");
     wrap_chdir("$repo.git");
     if ($verb eq 'getperms') {
@@ -224,8 +226,10 @@ sub get_set_perms
 sub get_set_desc
 {
     my($repo_base_abs, $repo, $verb, $user) = @_;
-    my ($creator, $dummy, $dummy2) = &wild_repo_rights($repo_base_abs, $repo, "");
-    die "$repo doesnt exist or is not yours\n" unless $user eq $creator;
+    my ($perm, $creator, $wild, $exists) = &repo_rights($repo);
+    die "$repo does not exist" unless $exists;
+    die "$repo is not a wildcard repo" unless $wild;
+    die "you do not have C permission to $repo" unless $perm =~ /C/;
     wrap_chdir("$repo_base_abs");
     wrap_chdir("$repo.git");
     if ($verb eq 'getdesc') {
