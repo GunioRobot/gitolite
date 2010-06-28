@@ -130,6 +130,20 @@ $GL_GITCONFIG_KEYS = "";
 # regular expressions) is to allow anything and everything:
 # $GL_GITCONFIG_KEYS = ".*";
 
+# NOTE that due to some quoting and interpolation issues I have not been able
+# to look at, a literal "." needs to be specified in this string as \\.  (two
+# backslashes and a dot).  So this is how you'd allow any keys in the "foo"
+# category:
+#       $GL_GITCONFIG_KEYS = "foo\\..*";
+
+# --------------------------------------
+# ALLOW GITCONFIG KEYS EVEN FOR WILD REPOS
+#
+# This is an efficiency issue more than a security issue, since this requires
+# trawling through all of $REPO_BASE looking for stuff :)
+
+# $GL_GITCONFIG_WILD = 0;
+
 # --------------------------------------
 # EXTERNAL COMMAND HELPER -- HTPASSWD
 
