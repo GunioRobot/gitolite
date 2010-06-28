@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use File::Find;
 $Data::Dumper::Indent = 1;
 $Data::Dumper::Sortkeys = 1;
 
@@ -461,23 +460,14 @@ my $repo_base_abs = ( $REPO_BASE =~ m(^/) ? $REPO_BASE : "$ENV{HOME}/$REPO_BASE"
 #       update repo configurations
 # ----------------------------------------------------------------------------
 
-File::Find::find(\&walk_repo_config, $repo_base_abs);
-sub walk_repo_config {
-    if (($_ =~ "^.+\.git\$") && (-d $_)) {
-        $File::Find::prune = 1;
-        for my $repo (keys %repo_config) {
-            if ($File::Find::name =~ "^$repo_base_abs/$repo\.git\$") {
-                wrap_chdir($_);
-                while (my ($key, $value) = each(%{$repo_config{$repo}})) {
-                    if ($value) {
-                        $value =~ s/^"(.*)"$/$1/;
-                        system("git", "config", $key, $value);
-                    } else {
-                        system("git", "config", "--unset-all", $key);
-                    }
-                }
-                wrap_chdir("..");
-            }
+for my $repo (keys %repo_config) {
+    wrap_chdir("$repo_base_abs/$repo.git");
+    while ( my ($key, $value) = each(%{ $repo_config{$repo} }) ) {
+        if ($value) {
+            $value =~ s/^"(.*)"$/$1/;
+            system("git", "config", $key, $value);
+        } else {
+            system("git", "config", "--unset-all", $key);
         }
     }
 }
