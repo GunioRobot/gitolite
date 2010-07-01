@@ -176,17 +176,17 @@ sub new_repo
 # "who created this repo", "am I on the R list", and "am I on the RW list"?
 sub wild_repo_rights
 {
-    my ($repo_base_abs, $repo, $user) = @_;
+    my ($repo, $user) = @_;
     # creator
     my $c = '';
-    if (                     -f "$repo_base_abs/$repo.git/gl-creater") {
-        my $fh = wrap_open("<", "$repo_base_abs/$repo.git/gl-creater");
+    if (                     -f "$ENV{GL_REPO_BASE_ABS}/$repo.git/gl-creater") {
+        my $fh = wrap_open("<", "$ENV{GL_REPO_BASE_ABS}/$repo.git/gl-creater");
         chomp($c = <$fh>);
     }
     # $user's R and W rights
     my ($r, $w); $r = ''; $w = '';
-    if ($user and            -f "$repo_base_abs/$repo.git/gl-perms") {
-        my $fh = wrap_open("<", "$repo_base_abs/$repo.git/gl-perms");
+    if ($user and            -f "$ENV{GL_REPO_BASE_ABS}/$repo.git/gl-perms") {
+        my $fh = wrap_open("<", "$ENV{GL_REPO_BASE_ABS}/$repo.git/gl-perms");
         my $perms = join ("", <$fh>);
         if ($perms) {
             $r = $user if $perms =~ /^\s*R(?=\s).*\s(\@all|$user)(\s|$)/m;
@@ -203,12 +203,12 @@ sub wild_repo_rights
 
 sub get_set_perms
 {
-    my($repo_base_abs, $repo, $verb, $user) = @_;
+    my($repo, $verb, $user) = @_;
     my ($perm, $creator, $wild, $exists) = &repo_rights($repo);
     die "$repo does not exist" unless $exists;
     die "$repo is not a wildcard repo" unless $wild;
     die "you do not have C permission to $repo" unless $perm =~ /C/;
-    wrap_chdir("$repo_base_abs");
+    wrap_chdir("$ENV{GL_REPO_BASE_ABS}");
     wrap_chdir("$repo.git");
     if ($verb eq 'getperms') {
         system("cat", "gl-perms") if -f "gl-perms";
@@ -225,12 +225,12 @@ sub get_set_perms
 
 sub get_set_desc
 {
-    my($repo_base_abs, $repo, $verb, $user) = @_;
+    my($repo, $verb, $user) = @_;
     my ($perm, $creator, $wild, $exists) = &repo_rights($repo);
     die "$repo does not exist" unless $exists;
     die "$repo is not a wildcard repo" unless $wild;
     die "you do not have C permission to $repo" unless $perm =~ /C/;
-    wrap_chdir("$repo_base_abs");
+    wrap_chdir("$ENV{GL_REPO_BASE_ABS}");
     wrap_chdir("$repo.git");
     if ($verb eq 'getdesc') {
         system("cat", "description") if -f "description";
@@ -268,7 +268,6 @@ sub setup_repo_configs
                 last;
             }
         }
-        print STDERR "$WARN repo $repo created by $creator is wild but doesn't match any patterns\n" unless $repo_patt;
     } else {
         $repo_patt ||= $repo;   # just use the repo itself...
         # XXX TODO there is a remote possibility of errors if you have a
@@ -410,7 +409,7 @@ sub report_basic
 
 sub expand_wild
 {
-    my($GL_ADMINDIR, $GL_CONF_COMPILED, $repo_base_abs, $repo, $user) = @_;
+    my($GL_ADMINDIR, $GL_CONF_COMPILED, $repo, $user) = @_;
 
     &report_version($GL_ADMINDIR, $user);
     print "\ryou have access to the following repos on the server:\r\n";
@@ -421,7 +420,7 @@ sub expand_wild
     # display matching repos (from *all* the repos in the system) that $user
     # has at least "R" access to
 
-    chdir("$repo_base_abs") or die "chdir $repo_base_abs failed: $!\n";
+    chdir("$ENV{GL_REPO_BASE_ABS}") or die "chdir $ENV{GL_REPO_BASE_ABS} failed: $!\n";
     for my $actual_repo (`find . -type d -name "*.git"|sort`) {
         chomp ($actual_repo);
         $actual_repo =~ s/^\.\///;
@@ -468,7 +467,7 @@ sub expand_wild
         if ($exists) {
             # these will be empty if it's not a wildcard repo anyway
             my ($read, $write);
-            ($creator, $read, $write) = &wild_repo_rights($ENV{GL_REPO_BASE_ABS}, $repo, $ENV{GL_USER});
+            ($creator, $read, $write) = &wild_repo_rights($repo, $ENV{GL_USER});
             # get access list with these substitutions
             $wild = &parse_acl($GL_CONF_COMPILED, $repo, $creator || "NOBODY", $read || "NOBODY", $write || "NOBODY");
         } else {
