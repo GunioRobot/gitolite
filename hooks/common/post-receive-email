@@ -651,14 +651,7 @@ if [ -z "$GIT_DIR" ]; then
 	exit 1
 fi
 
-echo >&2 "GL_REPO_BASE_ABS is $GL_REPO_BASE_ABS"
-
-projectdesc=$(sed -ne '1p' "$GIT_DIR/description" 2>/dev/null)
-# Check if the description is unchanged from it's default, and shorten it to
-# a more manageable length if it is
-if [ -z "$projectdesc" ]; then
-	projectdesc="UNNAMED PROJECT"
-fi
+projectdesc=${GIT_DIR#${GL_REPO_BASE_ABS}/}
 
 recipients=$(git config post-receive-email.mailinglist)
 announcerecipients=$(git config post-receive-email.announcelist)
