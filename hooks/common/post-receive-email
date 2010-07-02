@@ -651,7 +651,12 @@ if [ -z "$GIT_DIR" ]; then
 	exit 1
 fi
 
+echo >&2 "GIT_DIR is $GIT_DIR"
+echo >&2 "GL_REPO_BASE_ABS is $GL_REPO_BASE_ABS"
+
 projectdesc=${GIT_DIR#${GL_REPO_BASE_ABS}/}
+
+echo >&2 "projectdesc is $projectdesc"
 
 recipients=$(git config post-receive-email.mailinglist)
 announcerecipients=$(git config post-receive-email.announcelist)
