@@ -196,7 +196,7 @@ generate_email_header()
 	# Generate header
 	cat <<-EOF
 	To: $recipients
-	Subject: ${emailprefix} $projectdesc $refname_type, $short_refname, ${change_type}d.
+	Subject: ${emailprefix} $projectdesc $refname_type "$short_refname" ${change_type}d.
 	Content-Type: text/plain; charset=utf-8
 	X-Git-Refname: $refname
 	X-Git-Reftype: $refname_type
@@ -652,10 +652,6 @@ if [ -z "$GIT_DIR" ]; then
 fi
 
 GIT_DIR_ABS=`readlink -f $GIT_DIR`
-
-echo >&2 "GIT_DIR is $GIT_DIR"
-echo >&2 "GIT_DIR_ABS is $GIT_DIR_ABS"
-echo >&2 "GL_REPO_BASE_ABS is $GL_REPO_BASE_ABS"
 
 projectdesc=${GIT_DIR_ABS#${GL_REPO_BASE_ABS}/}
 
