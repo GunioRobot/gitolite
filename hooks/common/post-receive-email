@@ -645,16 +645,19 @@ LOGEND="-----------------------------------------------------------------------"
 # --- Config
 # Set GIT_DIR either from the working directory, or from the environment
 # variable.
-GIT_DIR=$(git rev-parse --show-toplevel 2>/dev/null)
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
 if [ -z "$GIT_DIR" ]; then
 	echo >&2 "fatal: post-receive: GIT_DIR not set"
 	exit 1
 fi
 
+GIT_DIR_ABS=`readlink -f $GIT_DIR`
+
 echo >&2 "GIT_DIR is $GIT_DIR"
+echo >&2 "GIT_DIR_ABS is $GIT_DIR_ABS"
 echo >&2 "GL_REPO_BASE_ABS is $GL_REPO_BASE_ABS"
 
-projectdesc=${GIT_DIR#${GL_REPO_BASE_ABS}/}
+projectdesc=${GIT_DIR_ABS#${GL_REPO_BASE_ABS}/}
 
 echo >&2 "projectdesc is $projectdesc"
 
