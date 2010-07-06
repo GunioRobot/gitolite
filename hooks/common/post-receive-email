@@ -627,6 +627,26 @@ show_new_revisions()
 }
 
 
+limit_lines()
+{
+    lines=0
+    skipped=0
+    while IFS="" read line
+    do
+	lines=$((lines + 1))
+	if [ $lines -gt $1 ]
+	then
+	    skipped=$((skipped + 1))
+	else
+	    echo "$line"
+	fi
+    done
+    if [ $skipped -ne 0 ]
+    then
+	echo "... $skipped lines suppressed ..."
+    fi
+}
+
 send_mail()
 {
 	if [ -n "$envelopesender" ]; then
@@ -662,6 +682,7 @@ announcerecipients=$(git config post-receive-email.announcelist)
 envelopesender=$(git config post-receive-email.envelopesender)
 emailprefix=$(git config post-receive-email.emailprefix || echo '[SCM] ')
 custom_showrev=$(git config post-receive-email.showrev)
+maxlines=$(git config post-receive-email.maxlines || echo '2048')
 
 # --- Main loop
 # Allow dual mode: run from the command line just like the update hook, or
@@ -674,6 +695,6 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
 else
 	while read oldrev newrev refname
 	do
-		generate_email $oldrev $newrev $refname | send_mail
+		generate_email $oldrev $newrev $refname | limit_lines $maxlines | send_mail
 	done
 fi
