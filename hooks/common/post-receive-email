@@ -675,8 +675,6 @@ GIT_DIR_ABS=`readlink -f $GIT_DIR`
 
 projectdesc=${GIT_DIR_ABS#${GL_REPO_BASE_ABS}/}
 
-echo >&2 "projectdesc is $projectdesc"
-
 recipients=$(git config post-receive-email.mailinglist)
 announcerecipients=$(git config post-receive-email.announcelist)
 envelopesender=$(git config post-receive-email.envelopesender)
