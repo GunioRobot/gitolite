@@ -48,6 +48,11 @@
 #     "t=%s; printf 'http://.../?id=%%s' \$t; echo;echo; git show -C \$t; echo"
 #   Be careful if "..." contains things that will be expanded by shell "eval"
 #   or printf.
+# post-receive-email.emailmaxlines
+#   The maximum number of lines that should be included in the generated
+#   email (including its headers). If not specified, there is no limit.
+#   Lines beyond the limit are suppressed and counted, and a final
+#   line is added indicating the number of suppressed lines.
 #
 # Notes
 # -----
@@ -680,7 +685,7 @@ announcerecipients=$(git config post-receive-email.announcelist)
 envelopesender=$(git config post-receive-email.envelopesender)
 emailprefix=$(git config post-receive-email.emailprefix || echo '[SCM] ')
 custom_showrev=$(git config post-receive-email.showrev)
-maxlines=$(git config post-receive-email.maxlines || echo '2048')
+maxlines=$(git config post-receive-email.emailmaxlines)
 
 # --- Main loop
 # Allow dual mode: run from the command line just like the update hook, or
@@ -693,6 +698,10 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
 else
 	while read oldrev newrev refname
 	do
-		generate_email $oldrev $newrev $refname | limit_lines $maxlines | send_mail
+		if [ -z "$maxlines" ]; then
+			generate_email $oldrev $newrev $refname | send_mail
+		else
+			generate_email $oldrev $newrev $refname | limit_lines $maxlines | send_mail
+		fi
 	done
 fi
