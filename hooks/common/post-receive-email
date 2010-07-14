@@ -636,14 +636,14 @@ limit_lines()
 {
     lines=0
     skipped=0
-    while IFS="" read line
+    while IFS="" read -r line
     do
 	lines=$((lines + 1))
 	if [ $lines -gt $1 ]
 	then
 	    skipped=$((skipped + 1))
 	else
-	    echo "$line"
+	    printf "%s\n" "$line"
 	fi
     done
     if [ $skipped -ne 0 ]
