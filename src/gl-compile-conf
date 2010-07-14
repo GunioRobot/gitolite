@@ -494,49 +494,24 @@ if (%repo_config and $GL_WILDREPOS and $GL_GITCONFIG_WILD) {
 wrap_chdir("$ENV{GL_REPO_BASE_ABS}");
 
 unless ($GL_NO_DAEMON_NO_GITWEB) {
-    # daemons first...
-    for my $repo (sort keys %repos) {
-        next unless $repo =~ $REPONAME_PATT;
-        next if $repo =~ m(^\@|EXTCMD/);    # these are not real repos
-        my $export_ok = "$repo.git/git-daemon-export-ok";
-        if ($repos{$repo}{'R'}{'daemon'}) {
-            system("touch $export_ok");
-        } else {
-            unlink($export_ok);
-        }
-    }
-
     my %projlist = ();
-    # ...then gitwebs
-    for my $repo (sort keys %repos) {
-        next unless $repo =~ $REPONAME_PATT;
-        next if $repo =~ m(^\@|EXTCMD/);    # these are not real repos
-        my $desc_file = "$repo.git/description";
-        # note: having a description also counts as enabling gitweb
-        if ($repos{$repo}{'R'}{'gitweb'} or $desc{"$repo.git"}) {
-            $projlist{"$repo.git"} = 1;
-            # add the description file; no messages to user or error checking :)
-            $desc{"$repo.git"} and open(DESC, ">", $desc_file) and print DESC $desc{"$repo.git"} . "\n" and close DESC;
-            if ($owner{"$repo.git"}) {
-                # set the repository owner
-                system("git", "--git-dir=$repo.git", "config", "gitweb.owner", $owner{"$repo.git"});
-            } else {
-                # remove the repository owner setting
-                system("git --git-dir=$repo.git config --unset-all gitweb.owner 2>/dev/null");
-            }
-        } else {
-            # delete the description file; no messages to user or error checking :)
-            unlink $desc_file;
-            # remove the repository owner setting
-            system("git --git-dir=$repo.git config --unset-all gitweb.owner 2>/dev/null");
-        }
-
-        # unless there are other gitweb.* keys set, remove the section to keep the
-        # config file clean
-        my $keys = `git --git-dir=$repo.git config --get-regexp '^gitweb\\.' 2>/dev/null`;
-        if (length($keys) == 0) {
-            system("git --git-dir=$repo.git config --remove-section gitweb 2>/dev/null");
-        }
+    # daemons first...
+    # non wild
+    for my $repo (keys %repos) {
+        &setup_repo_daemon_and_gitweb(\%repos, $repo, \%projlist, \%desc, \%owner, 0) if $repo =~ $REPONAME_PATT;
+    }
+    # wild
+    if ($GL_WILDREPOS) {
+	wrap_chdir("$ENV{GL_REPO_BASE_ABS}");
+	for my $repo (`find . -type d -name "*.git"`) {
+	    chomp ($repo);
+	    next unless -f "$ENV{GL_REPO_BASE_ABS}/$repo/gl-creater";  # all/only wild repos have this file
+	    
+	    # $repo will look like "./foo/bar.git", make it "foo/bar" before
+	    # calling the repo daemon/gitweb setup sub
+	    $repo =~ s(\./(.*)\.git$)($1);
+	    &setup_repo_daemon_and_gitweb(\%repos, $repo, \%projlist, \%desc, \%owner, 1);
+	}
     }
 
     # update the project list

@@ -285,6 +285,74 @@ sub setup_repo_configs
 }
 
 # ----------------------------------------------------------------------------
+#       set/unset repo daemon and gitweb access
+# ----------------------------------------------------------------------------
+
+sub setup_repo_daemon_and_gitweb
+{
+    my ($repos_p, $repo, $projlist_p, $desc_p, $owner_p, $wild) = @_;
+
+    wrap_chdir("$ENV{GL_REPO_BASE_ABS}/$repo.git");
+
+    # prep for wild and non-wild cases separately
+    my $repo_patt = '';     # actually "repo or repo_pattern"
+    if ($wild) {
+        chomp (my $creator = `cat gl-creater`);
+
+        # loop each key of %repos and make a copy
+        for my $key (keys %$repos_p) {
+            my $key2 = $key;
+            # subst $creator in the copy with the creator name
+            $key2 =~ s/\$creator/$creator/g;
+            # match the new key against $repo
+            if ($repo =~ /^$key2$/) {
+                # if it matches, proceed
+                $repo_patt = $key;
+                last;
+            }
+        }
+    } else {
+        $repo_patt ||= $repo;   # just use the repo itself...
+        # XXX TODO there is a remote possibility of errors if you have a
+        # normal repo that fits a wild pattern; needs some digging into...
+    }
+
+    my $export_ok = "git-daemon-export-ok";
+    if ($repos_p->{$repo_patt}{'R'}{'daemon'}) {
+	system("touch $export_ok");
+    } else {
+	unlink($export_ok);
+    }
+
+    my $desc_file = "description";
+    # note: having a description also counts as enabling gitweb
+    if ($repos_p->{$repo_patt}{'R'}{'gitweb'} or $desc_p->{"$repo.git"}) {
+	$projlist_p->{"$repo.git"} = 1;
+	# add the description file; no messages to user or error checking :)
+	$desc_p->{"$repo.git"} and open(DESC, ">", $desc_file) and print DESC $desc_p->{"$repo.git"} . "\n" and close DESC;
+	if ($owner_p->{"$repo.git"}) {
+	    # set the repository owner
+	    system("git", "config", "gitweb.owner", $owner_p->{"$repo.git"});
+	} else {
+	    # remove the repository owner setting
+	    system("git config --unset-all gitweb.owner 2>/dev/null");
+	}
+    } else {
+	# delete the description file; no messages to user or error checking :)
+	unlink $desc_file;
+	# remove the repository owner setting
+	system("git config --unset-all gitweb.owner 2>/dev/null");
+    }
+    
+    # unless there are other gitweb.* keys set, remove the section to keep the
+    # config file clean
+    my $keys = `git config --get-regexp '^gitweb\\.' 2>/dev/null`;
+    if (length($keys) == 0) {
+	system("git config --remove-section gitweb 2>/dev/null");
+    }
+}
+
+# ----------------------------------------------------------------------------
 #       parse the compiled acl
 # ----------------------------------------------------------------------------
 
