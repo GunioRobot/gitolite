@@ -29,6 +29,9 @@ our ($R_COMMANDS, $W_COMMANDS, $REPONAME_PATT, $REPOPATT_PATT);
 our %repos;
 our %groups;
 our %repo_config;
+our %desc;
+our %owner;
+our $PROJECTS_LIST;
 
 # the common setup module is in the same directory as this running program is
 my $bindir = $0;
@@ -201,6 +204,17 @@ if ($perm =~ /C/ and not $exists) {
     wrap_chdir("$ENV{GL_REPO_BASE_ABS}");
     new_repo($repo, "$GL_ADMINDIR/hooks/common", $user);
     &setup_repo_configs(\%repo_config, $repo, 1);
+    my %projlist = ();
+    &setup_repo_daemon_and_gitweb(\%repos, $repo, \%projlist, \%desc, \%owner, 1);
+    # TODO: this could require some sort of locking
+    if (%projlist) {
+	# update the project list
+	my $projlist_fh = wrap_open( ">>", $PROJECTS_LIST);
+	for my $proj (sort keys %projlist) {
+	    print $projlist_fh "$proj\n";
+	}
+	close $projlist_fh;
+    }
     wrap_chdir($ENV{HOME});
 }
 
