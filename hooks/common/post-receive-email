@@ -82,6 +82,7 @@ generate_email()
 	oldrev=$(git rev-parse $1)
 	newrev=$(git rev-parse $2)
 	refname="$3"
+	maxlines=$4
 
 	# --- Interpret
 	# 0000->1234 (create)
@@ -190,7 +191,12 @@ generate_email()
 		fn_name=atag
 		;;
 	esac
-	generate_${change_type}_${fn_name}_email
+
+	if [ -z "$maxlines" ]; then
+		generate_${change_type}_${fn_name}_email
+	else
+		generate_${change_type}_${fn_name}_email | limit_lines $maxlines
+	fi
 
 	generate_email_footer
 }
@@ -634,22 +640,19 @@ show_new_revisions()
 
 limit_lines()
 {
-    lines=0
-    skipped=0
-    while IFS="" read -r line
-    do
-	lines=$((lines + 1))
-	if [ $lines -gt $1 ]
-	then
-	    skipped=$((skipped + 1))
-	else
-	    printf "%s\n" "$line"
+	lines=0
+	skipped=0
+	while IFS="" read -r line; do
+		lines=$((lines + 1))
+		if [ $lines -gt $1 ]; then
+			skipped=$((skipped + 1))
+		else
+			printf "%s\n" "$line"
+		fi
+	done
+	if [ $skipped -ne 0 ]; then
+		echo "... $skipped lines suppressed ..."
 	fi
-    done
-    if [ $skipped -ne 0 ]
-    then
-	echo "... $skipped lines suppressed ..."
-    fi
 }
 
 send_mail()
@@ -698,10 +701,6 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
 else
 	while read oldrev newrev refname
 	do
-		if [ -z "$maxlines" ]; then
-			generate_email $oldrev $newrev $refname | send_mail
-		else
-			generate_email $oldrev $newrev $refname | limit_lines $maxlines | send_mail
-		fi
+		generate_email $oldrev $newrev $refname $maxlines | send_mail
 	done
 fi
