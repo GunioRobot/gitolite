@@ -64,25 +64,15 @@
 # ---------------------------- Functions
 
 #
-# Top level email generation function.  This decides what type of update
-# this is and calls the appropriate body-generation routine after outputting
-# the common header
+# Function to prepare for email generation. This decides what type
+# of update this is and whether an email should even be generated.
 #
-# Note this function doesn't actually generate any email output, that is
-# taken care of by the functions it calls:
-#  - generate_email_header
-#  - generate_create_XXXX_email
-#  - generate_update_XXXX_email
-#  - generate_delete_XXXX_email
-#  - generate_email_footer
-#
-generate_email()
+prep_for_email()
 {
 	# --- Arguments
 	oldrev=$(git rev-parse $1)
 	newrev=$(git rev-parse $2)
 	refname="$3"
-	maxlines=$4
 
 	# --- Interpret
 	# 0000->1234 (create)
@@ -170,6 +160,29 @@ generate_email()
 		echo >&2 "*** for $refname update $oldrev->$newrev"
 		exit 0
 	fi
+}
+
+#
+# Top level email generation function.  This calls the appropriate
+# body-generation routine after outputting the common header.
+#
+# Note this function doesn't actually generate any email output, that is
+# taken care of by the functions it calls:
+#  - generate_email_header
+#  - generate_create_XXXX_email
+#  - generate_update_XXXX_email
+#  - generate_delete_XXXX_email
+#  - generate_email_footer
+#
+# Note also that this function cannot 'exit' from the script; when this
+# function is running (in hook script mode), the send_mail() function
+# is already executing in another process, connected via a pipe, and
+# if this function exits without, whatever has been generated to that
+# point will be sent as an email... even if nothing has been generated.
+#
+generate_email()
+{
+	maxlines=$1
 
 	# Email parameters
 	# The email subject will contain the best description of the ref
@@ -697,10 +710,12 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
 	# Output to the terminal in command line mode - if someone wanted to
 	# resend an email; they could redirect the output to sendmail
 	# themselves
-	PAGER= generate_email $2 $3 $1
+	prep_for_email $2 $3 $1
+	PAGER= generate_email $maxlines
 else
 	while read oldrev newrev refname
 	do
-		generate_email $oldrev $newrev $refname $maxlines | send_mail
+		prep_for_email $oldrev $newrev $refname
+		generate_email $maxlines | send_mail
 	done
 fi
