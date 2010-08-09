@@ -2,6 +2,8 @@
 
 . $(dirname $0)/adc.common-functions
 
+[ -z "$1" ] && die "A repository path must be supplied."
+
 delete=$1
 
 get_rights_and_owner $delete
