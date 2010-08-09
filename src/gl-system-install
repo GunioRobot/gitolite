@@ -19,7 +19,7 @@ usage() { echo "
 
 die() { echo "$@"; echo; usage; exit 1; }
 
-[ -z "$3" ] && usage
+[ -z "$4" ] && usage
 
 gl_bin_dir=$1
 [ -d $gl_bin_dir ] || die "$gl_bin_dir not found"
@@ -27,7 +27,7 @@ gl_conf_dir=$2
 [ -d $gl_conf_dir ] || die "$gl_conf_dir not found"
 gl_hooks_dir=$3
 [ -d $gl_hooks_dir ] || die "$gl_hooks_dir not found"
-gl_adc_dir=$3
+gl_adc_dir=$4
 [ -d $gl_adc_dir ] || die "$gl_adc_dir not found"
 
 bindir=`echo $0 | perl -lpe 's/^/$ENV{PWD}\// unless /^\//; s/\/[^\/]+$//;'`
