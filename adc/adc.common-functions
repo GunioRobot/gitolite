@@ -12,6 +12,7 @@ get_rights_and_owner() {
     owner=${ans#* }
     rights=${ans% *}
     echo $rights | grep C >/dev/null 2>&1 && perm_create=yes  || perm_create=
+    echo $rights | grep X >/dev/null 2>&1 && perm_remove=yes  || perm_remove=
     echo $rights | grep R >/dev/null 2>&1 && perm_read=yes    || perm_read=
     echo $rights | grep W >/dev/null 2>&1 && perm_write=yes   || perm_write=
 }

@@ -219,7 +219,7 @@ sub parse_conf_file
             s/\bCREAT[EO]R\b/\$creator/g for @repos;
         }
         # actual permission line
-        elsif (/^(-|C|R|RW\+?(?:C?D?|D?C?)) (.* )?= (.+)/)
+        elsif (/^(-|C|X|R|RW\+?(?:C?D?|D?C?)) (.* )?= (.+)/)
         {
             my $perms = $1;
             my @refs; @refs = split(' ', $2) if $2;
@@ -272,6 +272,7 @@ sub parse_conf_file
 
                     # for 1st level check (see faq/tips doc)
                     $repos{$repo}{C}{$user} = 1, next if $perms eq 'C';
+                    $repos{$repo}{X}{$user} = 1, next if $perms eq 'X';
                     $repos{$repo}{R}{$user} = 1 if $perms =~ /R/;
                     $repos{$repo}{W}{$user} = 1 if $perms =~ /W|D/;
 

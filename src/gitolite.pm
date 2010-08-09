@@ -411,6 +411,7 @@ sub parse_acl
         for my $u ('@all', "$gl_user - wild", @user_plus) {
             my $du = $gl_user; $du = '@all' if $u eq '@all';
             $repos{$dr}{C}{$du} = 1 if $repos{$r}{C}{$u};
+            $repos{$dr}{X}{$du} = 1 if $repos{$r}{X}{$u};
             $repos{$dr}{R}{$du} = 1 if $repos{$r}{R}{$u};
             $repos{$dr}{W}{$du} = 1 if $repos{$r}{W}{$u};
 
@@ -464,6 +465,7 @@ sub report_basic
         # #R => you're a super user and can see @all repos
         #  R => normal access
         my $perm .= ( $repos{$r}{C}{'@all'} ? ' @C' :                                      ( $repos{$r}{C}{$user} ? '  C' : '   ' ) );
+        $perm    .= ( $repos{$r}{X}{'@all'} ? ' @X' :                                      ( $repos{$r}{X}{$user} ? '  X' : '   ' ) );
         $perm    .= ( $repos{$r}{R}{'@all'} ? ' @R' : ( $repos{'@all'}{R}{$user} ? ' #R' : ( $repos{$r}{R}{$user} ? '  R' : '   ' )));
         $perm    .= ( $repos{$r}{W}{'@all'} ? ' @W' : ( $repos{'@all'}{W}{$user} ? ' #W' : ( $repos{$r}{W}{$user} ? '  W' : '   ' )));
         print "$perm\t$r\r\n" if $perm =~ /\S/;
@@ -541,6 +543,8 @@ sub expand_wild
         }
 
         if ($exists) {
+	    # X perms need to be filled in
+	    $perm = ( $repos{$repo}{X}{'@all'} ? ' @X' : ( $repos{$repo}{X}{$ENV{GL_USER}} ? ' =X' : '   ' )) if $GL_WILDREPOS;
             if ($creator and $wild) {
                 $creator = "($creator)";
             } elsif ($creator and not $wild) {
