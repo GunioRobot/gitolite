@@ -5,13 +5,14 @@
 
 usage() { echo "
     Usage:
-        $0 shared-bin-dir shared-conf-dir shared-hooks-dir
+        $0 shared-bin-dir shared-conf-dir shared-hooks-dir adc-dir
 
     Example:
-        $0 /usr/local/bin /var/gitolite/conf /var/gitolite/hooks
+        $0 /usr/local/bin /var/gitolite/conf /var/gitolite/hooks /var/gitolite/adc
 
     In this example, all the binaries go to /usr/local/bin, and the shared
-    conf and hooks files/directories go to the other 2 directories given
+    conf and hooks files/directories go to the other 2 directories given.
+    admin-defined commands will be installed in the third directory given.
 "
     exit 1;
 }
@@ -26,6 +27,8 @@ gl_conf_dir=$2
 [ -d $gl_conf_dir ] || die "$gl_conf_dir not found"
 gl_hooks_dir=$3
 [ -d $gl_hooks_dir ] || die "$gl_hooks_dir not found"
+gl_adc_dir=$3
+[ -d $gl_adc_dir ] || die "$gl_adc_dir not found"
 
 bindir=`echo $0 | perl -lpe 's/^/$ENV{PWD}\// unless /^\//; s/\/[^\/]+$//;'`
 cd $bindir/..       # we assume the standard gitolite source tree is here!
@@ -51,3 +54,5 @@ perl -lpi \
         $gl_conf_dir/example.gitolite.rc
 
 cp -R hooks/* $gl_hooks_dir || die "cp hooks/* to $gl_hooks_dir failed"
+
+cp -R adc/* $gl_adc_dir || die "cp adc/* to $gl_adc_dir failed"
