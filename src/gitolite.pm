@@ -551,13 +551,13 @@ sub expand_wild
                 $creator = "<gitolite>";
             }
         } else {
+	    # C perms need to be filled in
+	    $perm = ( $repos{$repo}{C}{'@all'} ? ' @C' : ( $repos{$repo}{C}{$ENV{GL_USER}} ? ' =C' : '   ' )) if $GL_WILDREPOS;
+	    # if you didn't have perms to create it, delete the "convenience"
+	    # copy of the ACL that parse_acl makes
+	    delete $repos{$repo} if $perm !~ /C/ and $wild;
             $creator = "<notfound>";
         }
-	# C perms need to be filled in
-	$perm = ( $repos{$repo}{C}{'@all'} ? ' @C' : ( $repos{$repo}{C}{$ENV{GL_USER}} ? ' =C' : '   ' )) if $GL_WILDREPOS;
-	# if you didn't have perms to create it, delete the "convenience"
-	# copy of the ACL that parse_acl makes
-	delete $repos{$repo} if $perm !~ /C/ and $wild;
         $perm .= ( $repos{$repo}{R}{'@all'} ? ' @R' : ( $repos{'@all'}{R}{$ENV{GL_USER}} ? ' #R' : ( $repos{$repo}{R}{$ENV{GL_USER}} ? '  R' : '   ' )));
         $perm .= ( $repos{$repo}{W}{'@all'} ? ' @W' : ( $repos{'@all'}{W}{$ENV{GL_USER}} ? ' #W' : ( $repos{$repo}{W}{$ENV{GL_USER}} ? '  W' : '   ' )));
 
