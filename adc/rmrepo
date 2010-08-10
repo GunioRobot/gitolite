@@ -11,3 +11,5 @@ get_rights_and_owner $remove
 
 cd $GL_REPO_BASE_ABS
 rm -rf $remove.git
+
+echo "$remove removed."
