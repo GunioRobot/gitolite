@@ -13,6 +13,13 @@
 # $GL_PACKAGE_HOOKS = "";
 
 # --------------------------------------
+# MIRRORING SUPPORT
+
+# $GL_SLAVE_MODE = 0;
+# $ENV{GL_SLAVES} = 'gitolite@server2 gitolite@server3';
+#       PLEASE USE SINGLE QUOTES ABOVE, NOT DOUBLE QUOTES
+
+# see doc/mirroring.mkd for details
 
 # --------------------------------------
 
@@ -61,6 +68,17 @@ $GL_LOGT="$GL_ADMINDIR/logs/gitolite-%y-%m.log";
 
 # $GL_LOGT="$GL_ADMINDIR/logs/gitolite-%y-%m-%d.log";
 # $GL_LOGT="$GL_ADMINDIR/logs/gitolite-%y.log";
+
+# --------------------------------------
+
+# location of the performance log files
+
+# uncomment and set this variable if you want performance logging
+#
+# perf log files are different from access log files; they store different
+# information, are not meant to be as long-lived, and so on
+
+# $GL_PERFLOGT="$GL_ADMINDIR/logs/perf-gitolite-%y-%m.log";
 
 # --------------------------------------
 
